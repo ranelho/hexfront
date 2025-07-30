@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEye, FaEdit, FaTrash, FaPlus, FaTimes, FaUsers, FaMapMarkerAlt, FaPhone, FaUserFriends, FaExclamationTriangle } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaTimes, FaEye, FaEdit, FaTrash, FaUsers, FaMapMarkerAlt, FaPhone, FaUserFriends, FaExclamationTriangle } from 'react-icons/fa';
 import PersonFormModal from '../components/PersonFormModal';
 import PersonEditModal from '../components/PersonEditModal';
-import { getAllPersons, deletePerson } from '../services/personService';
+import { getPersons, deletePerson } from '../services/personService';
 
 interface Address {
   id: number;
@@ -46,6 +46,7 @@ export default function PersonListPage() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [personToDelete, setPersonToDelete] = useState<Person | null>(null);
   const [personToEdit, setPersonToEdit] = useState<Person | null>(null);
@@ -126,7 +127,7 @@ export default function PersonListPage() {
   function handleEditSuccess() {
     closeEditModal();
     // Recarregar dados
-    getAllPersons(page, 12, debouncedName, debouncedCpf)
+    getPersons(page, 12, debouncedName, debouncedCpf)
       .then((data) => {
         if (Array.isArray(data.content)) {
           setPersons(data.content);
@@ -137,28 +138,61 @@ export default function PersonListPage() {
   }
 
   useEffect(() => {
+    if (!initialized) {
+      setInitialized(true);
+      return;
+    }
+    
     setLoading(true);
-    getAllPersons(page, 12, debouncedName, debouncedCpf)
+    setError(null);
+    
+    console.log('Fazendo requisição com:', { page, size: 12, name: debouncedName, cpf: debouncedCpf });
+    
+    getPersons(page, 12, debouncedName, debouncedCpf)
       .then((data) => {
         console.log('Dados recebidos:', data);
-        if (Array.isArray(data.content)) {
+        
+        if (data && data.content && Array.isArray(data.content)) {
           setPersons(data.content);
           setTotalPages(Math.ceil((data.totalElements || 0) / (data.pageSize || 12)));
         } else if (Array.isArray(data)) {
           setPersons(data);
           setTotalPages(1);
         } else {
+          console.error('Formato de dados inesperado:', data);
           setPersons([]);
           setTotalPages(1);
         }
         setLoading(false);
       })
       .catch((err) => {
-        setError('Erro ao carregar pessoas. Verifique a conexão ou tente novamente.');
+        console.error('Erro completo:', err);
+        console.error('Erro message:', err.message);
+        console.error('Erro response:', err.response);
+        console.error('Erro request:', err.request);
+        
+        let errorMessage = 'Erro ao carregar pessoas. ';
+        
+        if (err.response) {
+          // Servidor respondeu com status de erro
+          errorMessage += `Status: ${err.response.status}. `;
+          if (err.response.data && err.response.data.message) {
+            errorMessage += err.response.data.message;
+          } else {
+            errorMessage += 'Verifique a conexão com o servidor.';
+          }
+        } else if (err.request) {
+          // Requisição foi feita mas não houve resposta
+          errorMessage += 'Servidor não respondeu. Verifique se o backend está rodando.';
+        } else {
+          // Erro na configuração da requisição
+          errorMessage += err.message || 'Erro desconhecido.';
+        }
+        
+        setError(errorMessage);
         setLoading(false);
-        console.error('Erro ao buscar pessoas:', err);
       });
-  }, [page, debouncedName, debouncedCpf]);
+  }, [initialized, page, debouncedName, debouncedCpf]);
 
   // Debounce para filtros
   useEffect(() => {
@@ -348,7 +382,7 @@ export default function PersonListPage() {
             setShowFormModal(false); 
             setPage(0);
             // Recarregar dados
-            getAllPersons(page, 12, debouncedName, debouncedCpf)
+            getPersons(page, 12, debouncedName, debouncedCpf)
               .then((data) => {
                 if (Array.isArray(data.content)) {
                   setPersons(data.content);

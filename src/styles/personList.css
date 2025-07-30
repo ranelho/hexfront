@@ -520,6 +520,19 @@
   color: #bdc3c7;
 }
 
+/* Estilos para campos somente leitura */
+.details-item .form-input[readonly] {
+  background-color: #f8f9fa !important;
+  cursor: not-allowed;
+  color: #6c757d;
+  border-color: #dee2e6;
+}
+
+.details-item .form-input[readonly]:focus {
+  border-color: #dee2e6;
+  box-shadow: none;
+}
+
 /* Garantir que o campo CPF seja editável */
 .details-item .form-input[name="cpf"] {
   cursor: text;
@@ -593,6 +606,38 @@
 .status-error {
   background: linear-gradient(135deg, #ff6b6b, #ee5a24);
   color: white;
+}
+
+/* Mensagens de validação de CPF */
+.error-message {
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.error-message::before {
+  content: "⚠";
+  font-size: 14px;
+}
+
+.loading-message {
+  color: #3498db;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.loading-message::before {
+  content: "⏳";
+  font-size: 14px;
+  animation: spin 1s linear infinite;
 }
 
 /* Modal de confirmação de exclusão */

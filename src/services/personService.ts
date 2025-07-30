@@ -1,30 +1,76 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/hex/api/person';
+// Configuração do axios usando proxy do Vite
+const api = axios.create({
+  baseURL: '/hex/api', // Usando proxy do Vite
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+  withCredentials: false,
+});
 
-export async function getAllPersons(page = 0, size = 12, name?: string, cpf?: string) {
+// Interceptor para requests
+api.interceptors.request.use(
+  (config) => {
+    console.log('Request:', config.method?.toUpperCase(), config.url, config.params);
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor para responses
+api.interceptors.response.use(
+  (response) => {
+    console.log('Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('Response error:', error.response?.status, error.response?.data);
+    return Promise.reject(error);
+  }
+);
+
+export async function getPersons(page = 0, size = 10, name?: string, cpf?: string) {
   const params: any = { page, size };
   if (name) params.name = name;
   if (cpf) params.cpf = cpf;
-  const res = await axios.get(`${API_URL}/all`, { params });
+  
+  console.log('Chamando API com params:', params);
+  const res = await api.get('/person/all', { params });
   return res.data;
 }
 
 export async function getPerson(id: number) {
-  const res = await axios.get(`${API_URL}/${id}`);
+  const res = await api.get(`/person/${id}`);
   return res.data;
 }
 
 export async function createPerson(data: any) {
-  const res = await axios.post(`${API_URL}`, data);
+  const res = await api.post('/person', data);
   return res.data;
 }
 
 export async function updatePerson(id: number, data: any) {
-  const res = await axios.patch(`${API_URL}/${id}`, data);
+  const res = await api.put(`/person/${id}`, data);
   return res.data;
 }
 
 export async function deletePerson(id: number) {
-  await axios.delete(`${API_URL}/${id}`);
+  const res = await api.delete(`/person/${id}`);
+  return res.data;
+}
+
+export async function checkCpfExists(cpf: string): Promise<boolean> {
+  try {
+    const res = await api.get(`/person/exists?cpf=${cpf}`);
+    return res.data;
+  } catch (error) {
+    console.error('Erro ao verificar CPF:', error);
+    return false;
+  }
 }

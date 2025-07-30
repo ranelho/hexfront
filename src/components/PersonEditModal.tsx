@@ -17,13 +17,8 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Debug: verificar valores iniciais
-  console.log('PersonEditModal - person:', person);
-  console.log('PersonEditModal - formData:', formData);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log('Input change:', name, value); // Debug
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -115,21 +110,7 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
                   onChange={handleInputChange}
                   className="form-input"
                   required
-                  autoComplete="off"
-                  spellCheck="false"
-                  data-testid="cpf-input"
-                />
-              </div>
-              <div className="details-item">
-                <label htmlFor="cpfTest" className="details-item-label">CPF Teste</label>
-                <input
-                  type="text"
-                  id="cpfTest"
-                  name="cpfTest"
-                  value={formData.cpf || ''}
-                  onChange={(e) => console.log('CPF Test change:', e.target.value)}
-                  className="form-input"
-                  placeholder="Teste de edição"
+                  readOnly
                 />
               </div>
               <div className="details-item">
