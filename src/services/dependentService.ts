@@ -1,8 +1,8 @@
 import axios from 'axios';
-
-const API_URL = 'http://localhost:8080/hex/api/dependent';
+import { environment, buildApiUrl } from '../config/environment';
 
 export async function getDependentTypes() {
-  const res = await axios.get(`${API_URL}/dependent-type`);
+  const endpoint = buildApiUrl(environment.endpoints.dependentType);
+  const res = await axios.get(endpoint);
   return res.data;
 } 

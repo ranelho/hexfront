@@ -1,8 +1,8 @@
 import axios from 'axios';
+import { environment, buildApiUrl } from '../config/environment';
 
-// Configuração do axios usando proxy do Vite
+// Configuração do axios sem baseURL
 const api = axios.create({
-  baseURL: '/hex/api', // Usando proxy do Vite
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -14,11 +14,11 @@ const api = axios.create({
 // Interceptor para requests
 api.interceptors.request.use(
   (config) => {
-    console.log('Request:', config.method?.toUpperCase(), config.url, config.params);
+    console.log('📤 Request:', config.method?.toUpperCase(), config.url, config.params);
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
+    console.error('❌ Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -26,11 +26,12 @@ api.interceptors.request.use(
 // Interceptor para responses
 api.interceptors.response.use(
   (response) => {
-    console.log('Response:', response.status, response.config.url);
+    console.log('📥 Response:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    console.error('Response error:', error.response?.status, error.response?.data);
+    console.error('❌ Response error:', error.response?.status, error.response?.data);
+    console.error('❌ Error URL:', error.config?.url);
     return Promise.reject(error);
   }
 );
@@ -39,38 +40,46 @@ export async function getPersons(page = 0, size = 10, name?: string, cpf?: strin
   const params: any = { page, size };
   if (name) params.name = name;
   if (cpf) params.cpf = cpf;
+
+  console.log('🔍 Chamando API com params:', params);
+  const endpoint = buildApiUrl(environment.endpoints.personAll);
+  console.log('🔍 Endpoint completo:', endpoint);
   
-  console.log('Chamando API com params:', params);
-  const res = await api.get('/person/all', { params });
+  const res = await api.get(endpoint, { params });
   return res.data;
 }
 
 export async function getPerson(id: number) {
-  const res = await api.get(`/person/${id}`);
+  const endpoint = buildApiUrl(`${environment.endpoints.person}/${id}`);
+  const res = await api.get(endpoint);
   return res.data;
 }
 
 export async function createPerson(data: any) {
-  const res = await api.post('/person', data);
+  const endpoint = buildApiUrl(environment.endpoints.person);
+  const res = await api.post(endpoint, data);
   return res.data;
 }
 
 export async function updatePerson(id: number, data: any) {
-  const res = await api.put(`/person/${id}`, data);
+  const endpoint = buildApiUrl(`${environment.endpoints.person}/${id}`);
+  const res = await api.put(endpoint, data);
   return res.data;
 }
 
 export async function deletePerson(id: number) {
-  const res = await api.delete(`/person/${id}`);
+  const endpoint = buildApiUrl(`${environment.endpoints.person}/${id}`);
+  const res = await api.delete(endpoint);
   return res.data;
 }
 
 export async function checkCpfExists(cpf: string): Promise<boolean> {
   try {
-    const res = await api.get(`/person/exists?cpf=${cpf}`);
+    const endpoint = buildApiUrl(`${environment.endpoints.personExists}?cpf=${cpf}`);
+    const res = await api.get(endpoint);
     return res.data;
   } catch (error) {
-    console.error('Erro ao verificar CPF:', error);
+    console.error('❌ Erro ao verificar CPF:', error);
     return false;
   }
 }
