@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
 import { FaPlus, FaTimes } from 'react-icons/fa';
+import PersonFormModal from '../components/PersonFormModal';
 import { getAllPersons, deletePerson } from '../services/personService';
 
 interface Address {
@@ -52,6 +53,7 @@ export default function PersonListPage() {
   const [debouncedCpf, setDebouncedCpf] = useState('');
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [showFormModal, setShowFormModal] = useState(false);
   const navigate = useNavigate();
 
   async function handleDelete(id: number) {
@@ -131,7 +133,7 @@ export default function PersonListPage() {
         </div>
         <div style={{ marginRight: 32 }}>
           <button
-            onClick={() => navigate('/persons/new')}
+            onClick={() => setShowFormModal(true)}
             style={{ padding: '8px 20px', background: '#388e3c', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}
             title="Adicionar Pessoa"
           >
@@ -231,6 +233,10 @@ export default function PersonListPage() {
         </button>
       </div>
       {/* Modal de detalhes */}
+      {/* Modal de cadastro/edição */}
+      {showFormModal && (
+        <PersonFormModal onClose={() => setShowFormModal(false)} onSuccess={() => { setShowFormModal(false); setPage(0); }} />
+      )}
       {selectedPerson && (
         <div style={{
           position: 'fixed',
@@ -244,7 +250,7 @@ export default function PersonListPage() {
           justifyContent: 'center',
           zIndex: 9999
         }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 400, maxWidth: 600, boxShadow: '0 2px 16px rgba(0,0,0,0.15)', position: 'relative' }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 400, maxWidth: 700, boxShadow: '0 2px 16px rgba(0,0,0,0.15)', position: 'relative' }}>
             <button
               onClick={() => setSelectedPerson(null)}
               style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#888' }}
@@ -259,23 +265,47 @@ export default function PersonListPage() {
             <div style={{ marginBottom: 10 }}><strong>Data de Nascimento:</strong> {selectedPerson.birthDate}</div>
             <div style={{ marginBottom: 10 }}><strong>Mãe:</strong> {selectedPerson.nameMother}</div>
             <div style={{ marginBottom: 10 }}><strong>Pai:</strong> {selectedPerson.nameFather}</div>
-            <div style={{ marginBottom: 10 }}><strong>Endereço:</strong> {selectedPerson.addresses && selectedPerson.addresses.length > 0 ? (
-              <span>
-                {selectedPerson.addresses[0].street}, {selectedPerson.addresses[0].number} - {selectedPerson.addresses[0].city}/{selectedPerson.addresses[0].state} ({selectedPerson.addresses[0].zipCode})
-              </span>
-            ) : <span style={{ color: '#aaa' }}>-</span>}
+            {/* Endereços */}
+            <div style={{ marginBottom: 18 }}>
+              <strong>Endereços:</strong>
+              {selectedPerson.addresses && selectedPerson.addresses.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                  {selectedPerson.addresses.map((addr, i) => (
+                    <div key={addr.id || i} style={{ background: '#e3eafc', borderRadius: 8, padding: '8px 12px', fontSize: 15 }}>
+                      <span style={{ fontWeight: 500 }}>{addr.street}, {addr.number}</span> - {addr.city}/{addr.state} ({addr.zipCode})<br />
+                      <span style={{ color: '#555' }}>{addr.country}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <span style={{ color: '#aaa', marginLeft: 8 }}>-</span>}
             </div>
-            <div style={{ marginBottom: 10 }}><strong>Contato:</strong> {selectedPerson.contacts && selectedPerson.contacts.length > 0 ? (
-              <span>
-                {selectedPerson.contacts[0].email} {selectedPerson.contacts[0].ddd} {selectedPerson.contacts[0].telephoneNumber}
-              </span>
-            ) : <span style={{ color: '#aaa' }}>-</span>}
+            {/* Contatos */}
+            <div style={{ marginBottom: 18 }}>
+              <strong>Contatos:</strong>
+              {selectedPerson.contacts && selectedPerson.contacts.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                  {selectedPerson.contacts.map((contact, i) => (
+                    <div key={contact.id || i} style={{ background: '#fce4ec', borderRadius: 8, padding: '8px 12px', fontSize: 15 }}>
+                      <span style={{ fontWeight: 500 }}>{contact.email}</span><br />
+                      <span style={{ color: '#555' }}>{contact.ddd} {contact.telephoneNumber}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <span style={{ color: '#aaa', marginLeft: 8 }}>-</span>}
             </div>
-            <div style={{ marginBottom: 10 }}><strong>Dependente:</strong> {selectedPerson.dependents && selectedPerson.dependents.length > 0 ? (
-              <span>
-                {selectedPerson.dependents[0].name} ({selectedPerson.dependents[0].dependentType})
-              </span>
-            ) : <span style={{ color: '#aaa' }}>-</span>}
+            {/* Dependentes */}
+            <div style={{ marginBottom: 10 }}>
+              <strong>Dependentes:</strong>
+              {selectedPerson.dependents && selectedPerson.dependents.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                  {selectedPerson.dependents.map((dep, i) => (
+                    <div key={dep.id || i} style={{ background: '#fffde7', borderRadius: 8, padding: '8px 12px', fontSize: 15 }}>
+                      <span style={{ fontWeight: 500 }}>{dep.name}</span> ({dep.dependentType})<br />
+                      <span style={{ color: '#555' }}>CPF: {dep.cpf} | Nasc.: {dep.birthDate}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : <span style={{ color: '#aaa', marginLeft: 8 }}>-</span>}
             </div>
           </div>
         </div>
