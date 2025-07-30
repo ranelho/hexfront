@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaEye, FaEdit, FaTrash } from 'react-icons/fa';
-import { FaPlus, FaTimes } from 'react-icons/fa';
+import { FaEye, FaEdit, FaTrash, FaPlus, FaTimes, FaUsers, FaMapMarkerAlt, FaPhone, FaUserFriends, FaExclamationTriangle } from 'react-icons/fa';
 import PersonFormModal from '../components/PersonFormModal';
+import PersonEditModal from '../components/PersonEditModal';
 import { getAllPersons, deletePerson } from '../services/personService';
 
 interface Address {
@@ -47,6 +47,8 @@ export default function PersonListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  const [personToDelete, setPersonToDelete] = useState<Person | null>(null);
+  const [personToEdit, setPersonToEdit] = useState<Person | null>(null);
   const [nameFilter, setNameFilter] = useState('');
   const [cpfFilter, setCpfFilter] = useState('');
   const [debouncedName, setDebouncedName] = useState('');
@@ -56,16 +58,82 @@ export default function PersonListPage() {
   const [showFormModal, setShowFormModal] = useState(false);
   const navigate = useNavigate();
 
-  async function handleDelete(id: number) {
-    if (window.confirm('Tem certeza que deseja excluir esta pessoa?')) {
-      try {
-        await deletePerson(id);
-        setPersons((prev) => prev.filter((p) => p.id !== id));
-      } catch (err) {
-        alert('Erro ao excluir pessoa.');
-        console.error(err);
-      }
+  // Função para formatar CPF
+  function formatCPF(cpf: string): string {
+    // Remove tudo que não é dígito
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    
+    // Aplica a máscara
+    return cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  // Função para formatar data para padrão brasileiro
+  function formatDateBR(dateString: string): string {
+    if (!dateString) return '-';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      return date.toLocaleDateString('pt-BR');
+    } catch (error) {
+      return dateString;
     }
+  }
+
+  // Função para formatar telefone
+  function formatPhone(ddd: string, phone: string): string {
+    const phoneLimpo = phone.replace(/\D/g, '');
+    
+    if (phoneLimpo.length === 8) {
+      return `(${ddd}) ${phoneLimpo.replace(/(\d{4})(\d{4})/, '$1-$2')}`;
+    } else if (phoneLimpo.length === 9) {
+      return `(${ddd}) ${phoneLimpo.replace(/(\d{5})(\d{4})/, '$1-$2')}`;
+    } else {
+      return `(${ddd}) ${phoneLimpo}`;
+    }
+  }
+
+  async function handleDelete(id: number) {
+    try {
+      await deletePerson(id);
+      setPersons((prev) => prev.filter((p) => p.id !== id));
+      setPersonToDelete(null); // Fecha a modal
+    } catch (err) {
+      alert('Erro ao excluir pessoa.');
+      console.error(err);
+      setPersonToDelete(null); // Fecha a modal mesmo em caso de erro
+    }
+  }
+
+  function openDeleteConfirm(person: Person) {
+    setPersonToDelete(person);
+  }
+
+  function closeDeleteConfirm() {
+    setPersonToDelete(null);
+  }
+
+  function openEditModal(person: Person) {
+    setPersonToEdit(person);
+    setSelectedPerson(null); // Fecha o modal de visualização
+  }
+
+  function closeEditModal() {
+    setPersonToEdit(null);
+  }
+
+  function handleEditSuccess() {
+    closeEditModal();
+    // Recarregar dados
+    getAllPersons(page, 12, debouncedName, debouncedCpf)
+      .then((data) => {
+        if (Array.isArray(data.content)) {
+          setPersons(data.content);
+        } else if (Array.isArray(data)) {
+          setPersons(data);
+        }
+      });
   }
 
   useEffect(() => {
@@ -101,211 +169,362 @@ export default function PersonListPage() {
     return () => clearTimeout(handler);
   }, [nameFilter, cpfFilter]);
 
-  if (loading) return <div>Carregando...</div>;
-  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+  if (loading) {
+    return (
+      <div className="person-list-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="person-list-container">
+        <div className="empty-state">
+          <div className="empty-state-icon">⚠️</div>
+          <h3>Erro ao carregar dados</h3>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', padding: 0, margin: 0, background: '#f5f5f5', display: 'flex', flexDirection: 'column' }}>
-      <h2 style={{ textAlign: 'center', color: '#1976d2', margin: '32px 0 0 0' }}>Pessoas</h2>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '24px 0', width: '100%' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 32 }}>
-          <input
-            type="text"
-            placeholder="Filtrar por nome"
-            value={nameFilter}
-            onChange={e => { setNameFilter(e.target.value); setPage(0); }}
-            style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ccc', fontSize: 15, minWidth: 180 }}
-          />
-          <input
-            type="text"
-            placeholder="Filtrar por CPF"
-            value={cpfFilter}
-            onChange={e => { setCpfFilter(e.target.value); setPage(0); }}
-            style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ccc', fontSize: 15, minWidth: 140 }}
-          />
-          <button
-            onClick={() => { setNameFilter(''); setCpfFilter(''); setPage(0); }}
-            style={{ padding: '8px 14px', background: '#888', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}
-            title="Limpar Filtros"
-          >
-            <FaTimes /> Limpar
-          </button>
-        </div>
-        <div style={{ marginRight: 32 }}>
+    <div className="person-list-container">
+      {/* Header */}
+      <div className="person-list-header">
+        <h1 className="person-list-title">Gestão de Pessoas</h1>
+        
+        <div className="person-list-controls">
+          <div className="filters-container">
+            <input
+              type="text"
+              placeholder="Filtrar por nome"
+              value={nameFilter}
+              onChange={e => { setNameFilter(e.target.value); setPage(0); }}
+              className="filter-input"
+            />
+            <input
+              type="text"
+              placeholder="Filtrar por CPF"
+              value={cpfFilter}
+              onChange={e => { setCpfFilter(e.target.value); setPage(0); }}
+              className="filter-input"
+            />
+            <button
+              onClick={() => { setNameFilter(''); setCpfFilter(''); setPage(0); }}
+              className="clear-filters-btn"
+              title="Limpar Filtros"
+            >
+              <FaTimes /> Limpar
+            </button>
+          </div>
+          
           <button
             onClick={() => setShowFormModal(true)}
-            style={{ padding: '8px 20px', background: '#388e3c', color: '#fff', border: 'none', borderRadius: 6, fontWeight: 'bold', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}
+            className="add-person-btn"
             title="Adicionar Pessoa"
           >
             <FaPlus /> Adicionar Pessoa
           </button>
         </div>
       </div>
-      <div style={{ flex: 1, overflowX: 'auto', width: '100%' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15, minWidth: 900 }}>
-          <thead>
-            <tr style={{ background: '#1976d2', color: '#fff' }}>
-              <th style={{ padding: 12, display: 'none' }}>ID</th>
-              <th style={{ padding: 12 }}>Nome</th>
-              <th style={{ padding: 12 }}>CPF</th>
-              <th style={{ padding: 12 }}>Data de Nascimento</th>
-              <th style={{ padding: 12 }}>Endereço</th>
-              <th style={{ padding: 12 }}>Contatos</th>
-              <th style={{ padding: 12 }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {persons.map((person, idx) => (
-              <tr key={person.id} style={{ background: idx % 2 === 0 ? '#fff' : '#e3eafc' }}>
-                <td style={{ padding: 10, display: 'none' }}>{person.id}</td>
-                <td style={{ padding: 10 }}>{person.name}</td>
-                <td style={{ padding: 10 }}>{person.cpf}</td>
-                <td style={{ padding: 10 }}>{person.birthDate}</td>
-                <td style={{ padding: 10, minWidth: 180 }}>
-                  {person.addresses && person.addresses.length > 0 ? (
-                    <span>
-                      <span style={{ fontWeight: 500 }}>
-                        {person.addresses[0].street}, {person.addresses[0].number}
-                      </span>
-                      {' '}
-                      <span style={{ color: '#555' }}>
-                        {person.addresses[0].city}/{person.addresses[0].state} ({person.addresses[0].zipCode})
-                      </span>
-                    </span>
-                  ) : (
-                    <span style={{ color: '#aaa' }}>-</span>
-                  )}
-                </td>
-                <td style={{ padding: 10, minWidth: 160 }}>
-                  {person.contacts?.map((contact) => (
-                    <div key={contact.id} style={{ marginBottom: 4 }}>
-                      <span style={{ fontWeight: 500 }}>{contact.email}</span> <br />
-                      <span style={{ color: '#555' }}>{contact.ddd} {contact.telephoneNumber}</span>
-                    </div>
-                  ))}
-                </td>
-                <td style={{ padding: 10, textAlign: 'center' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
-                    <button
-                      title="Visualizar"
-                      onClick={() => setSelectedPerson(person)}
-                      style={{ padding: '6px', background: '#7da8d3ff', color: '#fff', border: 'none', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      title="Editar"
-                      onClick={() => alert(`Editar pessoa ${person.id}`)}
-                      style={{ padding: '6px', background: '#ffa726', color: '#fff', border: 'none', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      title="Excluir"
-                      onClick={() => handleDelete(person.id)}
-                      style={{ padding: '6px', background: '#d32f2f', color: '#fff', border: 'none', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </td>
+
+      {/* Tabela */}
+      <div className="table-container">
+        {persons.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">👥</div>
+            <h3>Nenhuma pessoa encontrada</h3>
+            <p>Comece adicionando uma nova pessoa ou ajuste os filtros de busca.</p>
+          </div>
+        ) : (
+          <table className="person-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Data de Nascimento</th>
+                <th>Endereço</th>
+                <th>Contatos</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {persons.map((person) => (
+                <tr key={person.id}>
+                  <td className="person-name">{person.name}</td>
+                  <td className="person-cpf">{formatCPF(person.cpf)}</td>
+                  <td className="person-birth">{formatDateBR(person.birthDate)}</td>
+                  <td className="address-cell">
+                    {person.addresses && person.addresses.length > 0 ? (
+                      <div>
+                        <div className="address-main">
+                          {person.addresses[0].street}, {person.addresses[0].number}
+                        </div>
+                        <div className="address-secondary">
+                          {person.addresses[0].city}/{person.addresses[0].state} ({person.addresses[0].zipCode})
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ color: '#aaa' }}>-</span>
+                    )}
+                  </td>
+                  <td className="contacts-cell">
+                    {person.contacts && person.contacts.length > 0 ? (
+                      person.contacts.map((contact) => (
+                        <div key={contact.id} className="contact-item">
+                          <span className="contact-email">{contact.email}</span>
+                          <span className="contact-phone">{formatPhone(contact.ddd, contact.telephoneNumber)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span style={{ color: '#aaa' }}>-</span>
+                    )}
+                  </td>
+                  <td className="actions-cell">
+                    <div className="action-buttons">
+                      <button
+                        title="Visualizar"
+                        onClick={() => setSelectedPerson(person)}
+                        className="action-btn action-btn-view"
+                      >
+                        <FaEye size={14} />
+                        <span style={{ marginLeft: '4px', fontSize: '12px' }}>Ver</span>
+                      </button>
+                      <button
+                        title="Editar"
+                        onClick={() => openEditModal(person)}
+                        className="action-btn action-btn-edit"
+                      >
+                        <FaEdit size={14} />
+                        <span style={{ marginLeft: '4px', fontSize: '12px' }}>Editar</span>
+                      </button>
+                      <button
+                        title="Excluir"
+                        onClick={() => openDeleteConfirm(person)}
+                        className="action-btn action-btn-delete"
+                      >
+                        <FaTrash size={14} />
+                        <span style={{ marginLeft: '4px', fontSize: '12px' }}>Excluir</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
+
       {/* Paginação */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, margin: '4px 32px 0 0' }}>
-        <button
-          onClick={() => setPage((p) => Math.max(0, p - 1))}
-          disabled={page === 0}
-          style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #1976d2', background: page === 0 ? '#eee' : '#1976d2', color: page === 0 ? '#888' : '#fff', fontWeight: 'bold', cursor: page === 0 ? 'not-allowed' : 'pointer', fontSize: 18 }}
-        >
-          {'<'}
-        </button>
-        <span style={{ fontWeight: 'bold', fontSize: 15 }}>Página {page + 1} de {totalPages}</span>
-        <button
-          onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-          disabled={page >= totalPages - 1}
-          style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #1976d2', background: page >= totalPages - 1 ? '#eee' : '#1976d2', color: page >= totalPages - 1 ? '#888' : '#fff', fontWeight: 'bold', cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer', fontSize: 18 }}
-        >
-          {'>'}
-        </button>
-      </div>
-      {/* Modal de detalhes */}
+      {persons.length > 0 && (
+        <div className="pagination-container">
+          <button
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page === 0}
+            className="pagination-btn"
+          >
+            {'<'}
+          </button>
+          <span className="pagination-info">Página {page + 1} de {totalPages}</span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="pagination-btn"
+          >
+            {'>'}
+          </button>
+        </div>
+      )}
+
       {/* Modal de cadastro/edição */}
       {showFormModal && (
-        <PersonFormModal onClose={() => setShowFormModal(false)} onSuccess={() => { setShowFormModal(false); setPage(0); }} />
+        <PersonFormModal 
+          onClose={() => setShowFormModal(false)} 
+          onSuccess={() => { 
+            setShowFormModal(false); 
+            setPage(0);
+            // Recarregar dados
+            getAllPersons(page, 12, debouncedName, debouncedCpf)
+              .then((data) => {
+                if (Array.isArray(data.content)) {
+                  setPersons(data.content);
+                } else if (Array.isArray(data)) {
+                  setPersons(data);
+                }
+              });
+          }} 
+        />
       )}
+
+      {/* Modal de detalhes */}
       {selectedPerson && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          background: 'rgba(0,0,0,0.35)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999
-        }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 32, minWidth: 400, maxWidth: 700, boxShadow: '0 2px 16px rgba(0,0,0,0.15)', position: 'relative' }}>
+        <div className="details-modal">
+          <div className="details-content">
             <button
               onClick={() => setSelectedPerson(null)}
-              style={{ position: 'absolute', top: 16, right: 16, background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#888' }}
+              className="details-close"
               title="Fechar"
             >
               ×
             </button>
-            <h3 style={{ color: '#1976d2', marginBottom: 16 }}>Detalhes da Pessoa</h3>
-            <div style={{ marginBottom: 10 }}><strong>ID:</strong> {selectedPerson.id}</div>
-            <div style={{ marginBottom: 10 }}><strong>Nome:</strong> {selectedPerson.name}</div>
-            <div style={{ marginBottom: 10 }}><strong>CPF:</strong> {selectedPerson.cpf}</div>
-            <div style={{ marginBottom: 10 }}><strong>Data de Nascimento:</strong> {selectedPerson.birthDate}</div>
-            <div style={{ marginBottom: 10 }}><strong>Mãe:</strong> {selectedPerson.nameMother}</div>
-            <div style={{ marginBottom: 10 }}><strong>Pai:</strong> {selectedPerson.nameFather}</div>
+            
+            <h2 className="details-title">
+              Detalhes da Pessoa
+              <div className="details-actions">
+                <button
+                  onClick={() => openEditModal(selectedPerson)}
+                  className="details-action-btn details-action-btn-edit"
+                  title="Editar Pessoa"
+                >
+                  <FaEdit /> Editar
+                </button>
+              </div>
+            </h2>
+            
+            <div className="details-section">
+              <div className="details-grid">
+                <div className="details-item">
+                  <div className="details-item-label">Nome</div>
+                  <div className="details-item-value">{selectedPerson.name}</div>
+                </div>
+                <div className="details-item">
+                  <div className="details-item-label">CPF</div>
+                  <div className="details-item-value">{formatCPF(selectedPerson.cpf)}</div>
+                </div>
+                <div className="details-item">
+                  <div className="details-item-label">Data de Nascimento</div>
+                  <div className="details-item-value">{formatDateBR(selectedPerson.birthDate)}</div>
+                </div>
+                <div className="details-item">
+                  <div className="details-item-label">Nome da Mãe</div>
+                  <div className="details-item-value">{selectedPerson.nameMother}</div>
+                </div>
+                <div className="details-item">
+                  <div className="details-item-label">Nome do Pai</div>
+                  <div className="details-item-value">{selectedPerson.nameFather}</div>
+                </div>
+              </div>
+            </div>
+
             {/* Endereços */}
-            <div style={{ marginBottom: 18 }}>
-              <strong>Endereços:</strong>
+            <div className="details-section">
+              <div className="details-section-title">
+                <FaMapMarkerAlt /> Endereços
+              </div>
               {selectedPerson.addresses && selectedPerson.addresses.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                <div className="details-items-container">
                   {selectedPerson.addresses.map((addr, i) => (
-                    <div key={addr.id || i} style={{ background: '#e3eafc', borderRadius: 8, padding: '8px 12px', fontSize: 15 }}>
-                      <span style={{ fontWeight: 500 }}>{addr.street}, {addr.number}</span> - {addr.city}/{addr.state} ({addr.zipCode})<br />
-                      <span style={{ color: '#555' }}>{addr.country}</span>
+                    <div key={addr.id || i} className="details-item">
+                      <div className="details-item-label">{addr.street}, {addr.number}</div>
+                      <div className="details-item-value">
+                        {addr.city}/{addr.state} ({addr.zipCode})<br />
+                        {addr.country}
+                      </div>
                     </div>
                   ))}
                 </div>
-              ) : <span style={{ color: '#aaa', marginLeft: 8 }}>-</span>}
+              ) : (
+                <div className="details-item">
+                  <div className="details-item-value">Nenhum endereço cadastrado</div>
+                </div>
+              )}
             </div>
+
             {/* Contatos */}
-            <div style={{ marginBottom: 18 }}>
-              <strong>Contatos:</strong>
+            <div className="details-section">
+              <div className="details-section-title">
+                <FaPhone /> Contatos
+              </div>
               {selectedPerson.contacts && selectedPerson.contacts.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                <div className="details-items-container">
                   {selectedPerson.contacts.map((contact, i) => (
-                    <div key={contact.id || i} style={{ background: '#fce4ec', borderRadius: 8, padding: '8px 12px', fontSize: 15 }}>
-                      <span style={{ fontWeight: 500 }}>{contact.email}</span><br />
-                      <span style={{ color: '#555' }}>{contact.ddd} {contact.telephoneNumber}</span>
+                    <div key={contact.id || i} className="details-item">
+                      <div className="details-item-label">{contact.email}</div>
+                      <div className="details-item-value">
+                        {formatPhone(contact.ddd, contact.telephoneNumber)}
+                      </div>
                     </div>
                   ))}
                 </div>
-              ) : <span style={{ color: '#aaa', marginLeft: 8 }}>-</span>}
+              ) : (
+                <div className="details-item">
+                  <div className="details-item-value">Nenhum contato cadastrado</div>
+                </div>
+              )}
             </div>
+
             {/* Dependentes */}
-            <div style={{ marginBottom: 10 }}>
-              <strong>Dependentes:</strong>
+            <div className="details-section">
+              <div className="details-section-title">
+                <FaUserFriends /> Dependentes
+              </div>
               {selectedPerson.dependents && selectedPerson.dependents.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6 }}>
+                <div className="details-items-container">
                   {selectedPerson.dependents.map((dep, i) => (
-                    <div key={dep.id || i} style={{ background: '#fffde7', borderRadius: 8, padding: '8px 12px', fontSize: 15 }}>
-                      <span style={{ fontWeight: 500 }}>{dep.name}</span> ({dep.dependentType})<br />
-                      <span style={{ color: '#555' }}>CPF: {dep.cpf} | Nasc.: {dep.birthDate}</span>
+                    <div key={dep.id || i} className="details-item">
+                      <div className="details-item-label">{dep.name} ({dep.dependentType})</div>
+                      <div className="details-item-value">
+                        CPF: {formatCPF(dep.cpf)}<br />
+                        Data de Nascimento: {formatDateBR(dep.birthDate)}
+                      </div>
                     </div>
                   ))}
                 </div>
-              ) : <span style={{ color: '#aaa', marginLeft: 8 }}>-</span>}
+              ) : (
+                <div className="details-item">
+                  <div className="details-item-value">Nenhum dependente cadastrado</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de edição */}
+      {personToEdit && (
+        <PersonEditModal
+          person={personToEdit}
+          onClose={closeEditModal}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {/* Modal de confirmação de exclusão */}
+      {personToDelete && (
+        <div className="confirm-modal">
+          <div className="confirm-content">
+            <div className="confirm-icon">
+              <FaExclamationTriangle />
+            </div>
+            
+            <h2 className="confirm-title">Confirmar Exclusão</h2>
+            
+            <p className="confirm-message">
+              Tem certeza que deseja excluir a pessoa{' '}
+              <span className="confirm-person-name">{personToDelete.name}</span>?
+            </p>
+            
+            <p className="confirm-message">
+              Esta ação não pode ser desfeita e todos os dados relacionados serão removidos permanentemente.
+            </p>
+            
+            <div className="confirm-buttons">
+              <button
+                onClick={closeDeleteConfirm}
+                className="confirm-btn confirm-btn-cancel"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDelete(personToDelete.id)}
+                className="confirm-btn confirm-btn-delete"
+              >
+                Excluir
+              </button>
             </div>
           </div>
         </div>
