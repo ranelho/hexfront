@@ -132,7 +132,7 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
                 />
               </div>
               <div className="details-item">
-                <label htmlFor="nameMother" className="details-item-label">Nome da Mãe *</label>
+                <label htmlFor="nameMother" className="details-item-label">Nome da Mãe</label>
                 <input
                   type="text"
                   id="nameMother"
@@ -140,11 +140,10 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
                   value={formData.nameMother}
                   onChange={handleInputChange}
                   className="form-input"
-                  required
                 />
               </div>
               <div className="details-item">
-                <label htmlFor="nameFather" className="details-item-label">Nome do Pai *</label>
+                <label htmlFor="nameFather" className="details-item-label">Nome do Pai</label>
                 <input
                   type="text"
                   id="nameFather"
@@ -152,7 +151,6 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
                   value={formData.nameFather}
                   onChange={handleInputChange}
                   className="form-input"
-                  required
                 />
               </div>
             </div>

@@ -26,9 +26,11 @@ export default defineConfig(({ mode }) => {
             });
             proxy.on('proxyReq', (proxyReq, req, _res) => {
               console.log('📤 Proxy Request:', req.method, req.url);
+              console.log('📤 Proxy Headers:', proxyReq.getHeaders());
             });
             proxy.on('proxyRes', (proxyRes, req, _res) => {
               console.log('📥 Proxy Response:', proxyRes.statusCode, req.url);
+              console.log('📥 Proxy Response Headers:', proxyRes.headers);
             });
           },
         },

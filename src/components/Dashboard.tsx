@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaUsers, FaUserPlus, FaMapMarkerAlt, FaPhone, FaUserFriends, FaCalendarAlt, FaEye } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { getDashboardStats, getRecentPersons, type DashboardStats } from '../services/dashboardService';
+import { getDashboardStats, getRecentPersons, getPersonsByMonth, type DashboardStats } from '../services/dashboardService';
 import PersonDetailsModal from './PersonDetailsModal';
 import './Dashboard.css';
 
@@ -26,13 +26,22 @@ export default function Dashboard() {
     const loadDashboardData = async () => {
       try {
         console.log('Carregando dados do dashboard...');
-        const [dashboardData, recentData] = await Promise.all([
+        const [dashboardData, recentData, monthlyData] = await Promise.all([
           getDashboardStats(),
-          getRecentPersons(5)
+          getRecentPersons(5),
+          getPersonsByMonth()
         ]);
         console.log('Dados do dashboard carregados:', dashboardData);
         console.log('Pessoas recentes carregadas:', recentData);
-        setStats(dashboardData);
+        console.log('Dados mensais carregados:', monthlyData);
+        
+        // Calcular novos cadastros dos últimos 30 dias
+        const last30DaysCount = calculateLast30DaysCount(monthlyData);
+        
+        setStats({
+          ...dashboardData,
+          recentPersons: last30DaysCount
+        });
         setRecentPersons(recentData);
       } catch (error) {
         console.error('Erro ao carregar dados do dashboard:', error);
@@ -54,6 +63,27 @@ export default function Dashboard() {
 
     loadDashboardData();
   }, []);
+
+  // Função para calcular cadastros dos últimos 30 dias
+  const calculateLast30DaysCount = (monthlyData: Array<{ month: string; count: number }>) => {
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    let totalCount = 0;
+    
+    monthlyData.forEach(item => {
+      const [year, month] = item.month.split('-').map(Number);
+      const itemDate = new Date(year, month - 1, 1); // month - 1 porque meses são 0-indexed
+      
+      // Se o mês está dentro dos últimos 30 dias, adiciona ao total
+      if (itemDate >= thirtyDaysAgo) {
+        totalCount += item.count;
+      }
+    });
+    
+    console.log('📊 Calculando últimos 30 dias:', { monthlyData, totalCount });
+    return totalCount;
+  };
 
   const StatCard = ({ 
     title, 

@@ -15,6 +15,8 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log('📤 Request:', config.method?.toUpperCase(), config.url, config.params);
+    console.log('📤 Request Headers:', config.headers);
+    console.log('📤 Request Data:', config.data);
     return config;
   },
   (error) => {
@@ -32,6 +34,17 @@ api.interceptors.response.use(
   (error) => {
     console.error('❌ Response error:', error.response?.status, error.response?.data);
     console.error('❌ Error URL:', error.config?.url);
+    console.error('❌ Error Method:', error.config?.method);
+    console.error('❌ Error Headers:', error.config?.headers);
+    
+    // Log específico para erro 403
+    if (error.response?.status === 403) {
+      console.error('🚫 Erro 403 - Acesso Negado. Verificando configuração do proxy...');
+      console.error('🚫 Request URL:', error.config?.url);
+      console.error('🚫 Request Method:', error.config?.method);
+      console.error('🚫 Request Data:', error.config?.data);
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -63,8 +76,32 @@ export async function createPerson(data: any) {
 
 export async function updatePerson(id: number, data: any) {
   const endpoint = buildApiUrl(`${environment.endpoints.person}/${id}`);
-  const res = await api.patch(endpoint, data);
-  return res.data;
+  
+  // Inclui todos os dados da pessoa para atualização
+  const updateData = {
+    name: data.name,
+    cpf: data.cpf,
+    birthDate: data.birthDate,
+    nameMother: data.nameMother,
+    nameFather: data.nameFather,
+    addresses: data.addresses || [],
+    contacts: data.contacts || [],
+    dependents: data.dependents || []
+  };
+  
+  console.log('🔧 Dados para atualização:', updateData);
+  console.log('🔧 Endpoint completo:', endpoint);
+  
+  try {
+    const res = await api.patch(endpoint, updateData);
+    console.log('✅ Atualização bem-sucedida:', res.data);
+    return res.data;
+  } catch (error) {
+    console.error('❌ Erro na atualização:', error);
+    console.error('❌ Status:', error.response?.status);
+    console.error('❌ Data:', error.response?.data);
+    throw error;
+  }
 }
 
 export async function deletePerson(id: number) {
