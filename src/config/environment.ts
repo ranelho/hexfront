@@ -12,6 +12,7 @@ export const environment = {
     personAll: import.meta.env.VITE_API_PERSON_ALL_ENDPOINT || '/person/all',
     personExists: import.meta.env.VITE_API_PERSON_EXISTS_ENDPOINT || '/person/exists',
     dependentType: import.meta.env.VITE_API_DEPENDENT_TYPE_ENDPOINT || '/dependent/dependent-type',
+    addressZipCode: import.meta.env.VITE_API_ADDRESS_ZIPCODE_ENDPOINT || '/address/zip-code',
   },
   
   // Configurações do proxy (desenvolvimento)

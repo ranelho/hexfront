@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Address } from '../types/person';
+import { buildExternalApiUrl } from '../config/environment';
 
 interface AddressFormProps {
   addresses: Address[];
@@ -27,7 +28,8 @@ export default function AddressForm({ addresses, onAddressesChange }: AddressFor
       errors[idx] = null;
       setCepError(errors);
       try {
-        const response = await fetch(`http://localhost:8080/hex/api/address/zip-code/${cep}`);
+        const zipCodeUrl = buildExternalApiUrl(`/address/zip-code/${cep}`);
+        const response = await fetch(zipCodeUrl);
         const data = await response.json();
         if (data && data.street) {
           const newAddresses = [...addresses];
