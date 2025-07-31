@@ -441,7 +441,7 @@
 }
 
 .details-section {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 .details-section-title {
@@ -457,16 +457,17 @@
 .details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 8px;
 }
 
 .details-item {
   background: #f8f9fa;
   border-radius: 10px;
-  padding: 15px;
-  border-left: 4px solid #667eea;
+  padding: 10px;
   position: relative;
 }
+
+
 
 .details-item-label {
   font-weight: 600;
@@ -487,7 +488,7 @@
 .details-items-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
+  gap: 8px;
 }
 
 .details-items-container .details-item {
@@ -501,13 +502,13 @@
 /* Estilos para inputs dentro dos modais de edição/cadastro */
 .details-item .form-input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 2px solid #e1e8ed;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.3s ease;
   background: white;
-  margin-top: 5px;
+  margin-top: 3px;
 }
 
 .details-item .form-input:focus {
@@ -516,13 +517,23 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.details-item .form-input.error {
+  border-color: #e74c3c;
+  background-color: #fdf2f2;
+}
+
+.details-item .form-input.error:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
 .details-item .form-input::placeholder {
   color: #bdc3c7;
 }
 
 /* Estilos para campos somente leitura */
 .details-item .form-input[readonly] {
-  background-color: #f8f9fa !important;
+  background-color: #f1f3f4 !important;
   cursor: not-allowed;
   color: #6c757d;
   border-color: #dee2e6;
@@ -531,29 +542,10 @@
 .details-item .form-input[readonly]:focus {
   border-color: #dee2e6;
   box-shadow: none;
+  background-color: #f1f3f4 !important;
 }
 
-/* Garantir que o campo CPF seja editável */
-.details-item .form-input[name="cpf"] {
-  cursor: text;
-  user-select: text;
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  pointer-events: auto;
-  background-color: white !important;
-}
 
-.details-item .form-input[name="cpf"]:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  background-color: white !important;
-}
-
-.details-item .form-input[name="cpf"]:hover {
-  background-color: white !important;
-}
 
 /* Botões de ação nos modais */
 .btn {

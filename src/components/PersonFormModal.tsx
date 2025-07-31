@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { FaUser, FaMapMarkerAlt, FaPhone, FaUserFriends, FaTimes, FaSave } from 'react-icons/fa';
 import { createPerson, checkCpfExists } from '../services/personService';
 import type { Person, Address, Contact, Dependent } from '../types/person';
+import type { ErrorState, ValidationError } from '../types/error';
+import { processApiError, getFieldError, hasFieldError } from '../utils/errorHandler';
 import AddressForm from './AddressForm';
 import ContactForm from './ContactForm';
 import DependentForm from './DependentForm';
@@ -25,7 +27,7 @@ type Props = {
 export default function PersonFormModal({ onClose, onSuccess }: Props) {
   const [person, setPerson] = useState<Person>(initialState);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorState, setErrorState] = useState<ErrorState>({ general: null, validations: [] });
   const [cpfError, setCpfError] = useState<string | null>(null);
   const [validatingCpf, setValidatingCpf] = useState(false);
 
@@ -80,7 +82,7 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setErrorState({ general: null, validations: [] });
 
     try {
       // Validar CPF antes de prosseguir
@@ -97,7 +99,8 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
       await createPerson(person);
       onSuccess();
     } catch (err) {
-      setError('Erro ao cadastrar pessoa. Verifique os dados e tente novamente.');
+      const processedError = processApiError(err);
+      setErrorState(processedError);
       console.error('Erro ao cadastrar pessoa:', err);
     } finally {
       setLoading(false);
@@ -119,15 +122,15 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
           <FaUser /> Cadastrar Pessoa
         </h2>
 
-        {error && (
+        {errorState.general && (
           <div className="status-message status-error">
-            {error}
+            {errorState.general}
           </div>
         )}
         
         <form onSubmit={handleSubmit}>
           {/* Dados Pessoais */}
-          <div className="details-section">
+          <div className="details">
             <h3 className="details-section-title">
               <FaUser /> Informações Básicas
             </h3>
@@ -139,9 +142,12 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
                   name="name" 
                   value={person.name} 
                   onChange={handleChange} 
-                  className="form-input" 
+                  className={`form-input ${hasFieldError('name', errorState.validations) ? 'error' : ''}`}
                   required 
                 />
+                {getFieldError('name', errorState.validations) && (
+                  <div className="error-message">{getFieldError('name', errorState.validations)}</div>
+                )}
               </div>
               <div className="details-item">
                 <label htmlFor="cpf" className="details-item-label">CPF *</label>
@@ -151,11 +157,14 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
                   value={person.cpf} 
                   onChange={handleChange} 
                   onBlur={handleCpfBlur}
-                  className="form-input" 
+                  className={`form-input ${hasFieldError('cpf', errorState.validations) ? 'error' : ''}`}
                   required 
                 />
                 {cpfError && (
                   <div className="error-message">{cpfError}</div>
+                )}
+                {getFieldError('cpf', errorState.validations) && (
+                  <div className="error-message">{getFieldError('cpf', errorState.validations)}</div>
                 )}
                 {validatingCpf && (
                   <div className="loading-message">Validando CPF...</div>
@@ -169,30 +178,31 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
                   type="date" 
                   value={person.birthDate} 
                   onChange={handleChange} 
-                  className="form-input" 
+                  className={`form-input ${hasFieldError('birthDate', errorState.validations) ? 'error' : ''}`}
                   required 
                 />
+                {getFieldError('birthDate', errorState.validations) && (
+                  <div className="error-message">{getFieldError('birthDate', errorState.validations)}</div>
+                )}
               </div>
               <div className="details-item">
-                <label htmlFor="nameMother" className="details-item-label">Nome da Mãe *</label>
+                <label htmlFor="nameMother" className="details-item-label">Nome da Mãe</label>
                 <input 
                   id="nameMother"
                   name="nameMother" 
                   value={person.nameMother} 
                   onChange={handleChange} 
                   className="form-input" 
-                  required 
                 />
               </div>
               <div className="details-item">
-                <label htmlFor="nameFather" className="details-item-label">Nome do Pai *</label>
+                <label htmlFor="nameFather" className="details-item-label">Nome do Pai</label>
                 <input 
                   id="nameFather"
                   name="nameFather" 
                   value={person.nameFather} 
                   onChange={handleChange} 
                   className="form-input" 
-                  required 
                 />
               </div>
             </div>

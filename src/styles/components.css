@@ -1,17 +1,17 @@
 /* Estilos para inputs */
 .form-input {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 15px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: none;
+  background-color: #f8f9fa;
+  font-size: 14px;
   outline: none;
   width: 100%;
-  transition: border-color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .form-input:focus {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+  background-color: #ffffff;
 }
 
 /* Botões */
@@ -116,41 +116,58 @@
 /* Títulos das seções */
 .section-title {
   color: #1976d2;
-  margin-bottom: 16px;
-  font-size: 18px;
+  margin-bottom: 12px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 /* Container de formulário */
 .form-section {
-  margin-bottom: 32px;
+  margin-bottom: 30px;
+}
+
+.form-section:not(:last-child) {
+  margin-bottom: 35px;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(200px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .form-grid-3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(200px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 .form-grid-4 {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 
 /* Card de item */
 .item-card {
   border: 1px solid #eee;
   border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-card .form-grid-3,
+.item-card .form-grid-4 {
+  flex: 1;
+}
+
+.item-card .btn-danger {
+  align-self: flex-end;
+  margin-top: 8px;
 }
 
 /* Mensagens de status */

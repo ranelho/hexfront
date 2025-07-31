@@ -131,16 +131,22 @@ export default function AddressForm({ addresses, onAddressesChange }: AddressFor
               className="form-input" 
             />
           </div>
-          <button
-            type="button"
-            onClick={() => handleRemoveAddress(idx)}
-            className="btn btn-danger"
-            title="Remover endereço"
-          >
-            Remover
-          </button>
-          {(cepLoading === idx) && <span className="status-message status-loading">Buscando...</span>}
-          {cepError[idx] && <span className="status-message status-error">{cepError[idx]}</span>}
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              {(cepLoading === idx) && <span className="status-message status-loading">Buscando...</span>}
+              {cepError[idx] && <span className="status-message status-error">{cepError[idx]}</span>}
+            </div>
+            
+            <button
+              type="button"
+              onClick={() => handleRemoveAddress(idx)}
+              className="btn btn-danger"
+              title="Remover endereço"
+            >
+              Remover
+            </button>
+          </div>
         </div>
       ))}
 

@@ -52,14 +52,17 @@ export default function ContactForm({ contacts, onContactsChange }: ContactFormP
               className="form-input"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => handleRemoveContact(idx)}
-            className="btn btn-danger"
-            title="Remover contato"
-          >
-            Remover
-          </button>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => handleRemoveContact(idx)}
+              className="btn btn-danger"
+              title="Remover contato"
+            >
+              Remover
+            </button>
+          </div>
         </div>
       ))}
 

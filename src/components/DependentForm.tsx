@@ -88,14 +88,17 @@ export default function DependentForm({ dependents, onDependentsChange }: Depend
               ))}
             </select>
           </div>
-          <button
-            type="button"
-            onClick={() => handleRemoveDependent(idx)}
-            className="btn btn-danger"
-            title="Remover dependente"
-          >
-            Remover
-          </button>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => handleRemoveDependent(idx)}
+              className="btn btn-danger"
+              title="Remover dependente"
+            >
+              Remover
+            </button>
+          </div>
         </div>
       ))}
 

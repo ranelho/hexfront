@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { FaTimes, FaSave, FaUser, FaIdCard, FaCalendar, FaFemale, FaMale, FaMapMarkerAlt, FaPhone, FaUserFriends } from 'react-icons/fa';
 import type { Person, Address, Contact, Dependent } from '../types/person';
+import type { ErrorState } from '../types/error';
 import { updatePerson } from '../services/personService';
+import { processApiError, getFieldError, hasFieldError } from '../utils/errorHandler';
 import AddressForm from './AddressForm';
 import ContactForm from './ContactForm';
 import DependentForm from './DependentForm';
@@ -15,7 +17,7 @@ interface PersonEditModalProps {
 export default function PersonEditModal({ person, onClose, onSuccess }: PersonEditModalProps) {
   const [formData, setFormData] = useState<Person>(person);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorState, setErrorState] = useState<ErrorState>({ general: null, validations: [] });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -49,7 +51,7 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
+    setErrorState({ general: null, validations: [] });
 
     try {
       if (person.id) {
@@ -57,7 +59,8 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
       }
       onSuccess();
     } catch (err) {
-      setError('Erro ao atualizar pessoa. Verifique os dados e tente novamente.');
+      const processedError = processApiError(err);
+      setErrorState(processedError);
       console.error('Erro ao atualizar pessoa:', err);
     } finally {
       setLoading(false);
@@ -75,9 +78,9 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
           <FaUser /> Editar Pessoa
         </h2>
 
-        {error && (
+        {errorState.general && (
           <div className="status-message status-error">
-            {error}
+            {errorState.general}
           </div>
         )}
 
@@ -96,9 +99,12 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="form-input"
+                  className={`form-input ${hasFieldError('name', errorState.validations) ? 'error' : ''}`}
                   required
                 />
+                {getFieldError('name', errorState.validations) && (
+                  <div className="error-message">{getFieldError('name', errorState.validations)}</div>
+                )}
               </div>
               <div className="details-item">
                 <label htmlFor="cpf" className="details-item-label">CPF *</label>

@@ -63,7 +63,7 @@ export async function createPerson(data: any) {
 
 export async function updatePerson(id: number, data: any) {
   const endpoint = buildApiUrl(`${environment.endpoints.person}/${id}`);
-  const res = await api.put(endpoint, data);
+  const res = await api.patch(endpoint, data);
   return res.data;
 }
 
