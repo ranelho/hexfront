@@ -1,69 +1,154 @@
-# React + TypeScript + Vite
+# Sistema de Gestão de Pessoas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React + TypeScript + Vite para o sistema de gestão de pessoas.
 
-Currently, two official plugins are available:
+## 🚀 Tecnologias
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - Biblioteca para interfaces
+- **TypeScript** - Tipagem estática
+- **Vite** - Build tool e dev server
+- **Axios** - Cliente HTTP
+- **React Router** - Roteamento
+- **React Icons** - Ícones
 
-## Expanding the ESLint configuration
+## 📋 Funcionalidades
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- ✅ Listagem de pessoas com paginação
+- ✅ Filtros por nome e CPF
+- ✅ Cadastro de pessoas
+- ✅ Edição de pessoas
+- ✅ Visualização detalhada
+- ✅ Exclusão com confirmação
+- ✅ Validação de CPF duplicado
+- ✅ Gestão de endereços, contatos e dependentes
+- ✅ Formatação de dados (CPF, telefone, data)
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛠️ Configuração do Ambiente
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### 1. Instalação de Dependências
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Configuração de Variáveis de Ambiente
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+O projeto utiliza variáveis de ambiente para configurar as URLs dos endpoints da API.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+#### Opção 1: Script Automático (Recomendado)
+
+```bash
+# Para desenvolvimento (padrão)
+npm run setup:env
+
+# Para staging
+npm run setup:env:staging
+
+# Para produção
+npm run setup:env:prod
 ```
+
+#### Opção 2: Configuração Manual
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+# Configurações da API
+VITE_API_BASE_URL=http://localhost:8080
+VITE_API_PATH=/hex/api
+
+# Endpoints específicos
+VITE_API_PERSON_ENDPOINT=/person
+VITE_API_PERSON_ALL_ENDPOINT=/person/all
+VITE_API_PERSON_EXISTS_ENDPOINT=/person/exists
+VITE_API_DEPENDENT_TYPE_ENDPOINT=/dependent/dependent-type
+
+# Configurações do proxy (desenvolvimento)
+VITE_PROXY_TARGET=http://localhost:8080
+```
+
+### 3. Execução
+
+```bash
+# Desenvolvimento
+npm run dev
+
+# Build para produção
+npm run build
+
+# Preview do build
+npm run preview
+```
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── components/          # Componentes React
+│   ├── PersonFormModal.tsx
+│   ├── PersonEditModal.tsx
+│   ├── AddressForm.tsx
+│   ├── ContactForm.tsx
+│   └── DependentForm.tsx
+├── config/             # Configurações
+│   ├── environment.ts
+│   └── environments.ts
+├── pages/              # Páginas da aplicação
+│   └── PersonListPage.tsx
+├── services/           # Serviços de API
+│   ├── personService.ts
+│   ├── addressService.ts
+│   └── dependentService.ts
+├── styles/             # Estilos CSS
+│   └── personList.css
+└── types/              # Tipos TypeScript
+    └── person.ts
+```
+
+## 🔧 Scripts Disponíveis
+
+- `npm run dev` - Inicia o servidor de desenvolvimento
+- `npm run build` - Gera build de produção
+- `npm run preview` - Preview do build
+- `npm run lint` - Executa o linter
+- `npm run setup:env` - Configura variáveis de ambiente
+- `npm run setup:env:dev` - Configura ambiente de desenvolvimento
+- `npm run setup:env:staging` - Configura ambiente de staging
+- `npm run setup:env:prod` - Configura ambiente de produção
+
+## 🌍 Ambientes
+
+### Desenvolvimento
+- URL: `http://localhost:8080`
+- Proxy ativo para evitar CORS
+- Logs detalhados
+
+### Staging
+- URL: `https://staging-api.seudominio.com`
+- Sem proxy
+- Configurações de teste
+
+### Produção
+- URL: `https://api.seudominio.com`
+- Sem proxy
+- Configurações otimizadas
+
+## 📚 Documentação Adicional
+
+- [Configuração de Ambiente](ENVIRONMENT.md) - Detalhes sobre variáveis de ambiente
+- [Estrutura de Dados](src/types/person.ts) - Interfaces TypeScript
+
+## 🔒 Segurança
+
+- Variáveis de ambiente para URLs sensíveis
+- Validação de CPF duplicado
+- Confirmação para exclusões
+- Sanitização de dados
+
+## 🎨 Design
+
+- Interface moderna com glassmorphism
+- Responsivo para mobile e desktop
+- Animações suaves
+- Estados de loading e erro
+- Modais customizados
