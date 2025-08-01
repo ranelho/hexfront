@@ -3,44 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaSearch, FaTimes, FaEye, FaEdit, FaTrash, FaUsers, FaMapMarkerAlt, FaPhone, FaUserFriends, FaExclamationTriangle } from 'react-icons/fa';
 import PersonFormModal from '../components/PersonFormModal';
 import PersonEditModal from '../components/PersonEditModal';
+import PersonDetailsModal from '../components/PersonDetailsModal';
 import { getPersons, deletePerson } from '../services/personService';
-
-interface Address {
-  id: number;
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  number: string;
-}
-
-interface Contact {
-  id: number;
-  email: string;
-  ddd: string;
-  telephoneNumber: string;
-}
-
-interface Dependent {
-  id: number;
-  name: string;
-  cpf: string;
-  birthDate: string;
-  dependentType: string;
-}
-
-interface Person {
-  id: number;
-  name: string;
-  cpf: string;
-  birthDate: string;
-  nameMother: string;
-  nameFather: string;
-  addresses: Address[];
-  contacts: Contact[];
-  dependents: Dependent[];
-}
+import { Person } from '../types/person';
 
 export default function PersonListPage() {
   const [persons, setPersons] = useState<Person[]>([]);
@@ -95,7 +60,9 @@ export default function PersonListPage() {
     }
   }
 
-  async function handleDelete(id: number) {
+  async function handleDelete(id: number | undefined) {
+    if (!id) return;
+    
     try {
       await deletePerson(id);
       setPersons((prev) => prev.filter((p) => p.id !== id));
@@ -308,10 +275,15 @@ export default function PersonListPage() {
                   </td>
                   <td className="contacts-cell">
                     {person.contacts && person.contacts.length > 0 ? (
-                      person.contacts.map((contact) => (
-                        <div key={contact.id} className="contact-item">
-                          <span className="contact-email">{contact.email}</span>
-                          <span className="contact-phone">{formatPhone(contact.ddd, contact.telephoneNumber)}</span>
+                      person.contacts.map((contact, index) => (
+                        <div key={index} className="contact-item">
+                          <span className="contact-email">{contact.email || 'Email não informado'}</span>
+                          <span className="contact-phone">
+                            {contact.ddd && contact.telephoneNumber 
+                              ? formatPhone(contact.ddd, contact.telephoneNumber)
+                              : 'Telefone não informado'
+                            }
+                          </span>
                         </div>
                       ))
                     ) : (
@@ -396,126 +368,11 @@ export default function PersonListPage() {
 
       {/* Modal de detalhes */}
       {selectedPerson && (
-        <div className="details-modal">
-          <div className="details-content">
-            <button
-              onClick={() => setSelectedPerson(null)}
-              className="details-close"
-              title="Fechar"
-            >
-              ×
-            </button>
-            
-            <h2 className="details-title">
-              Detalhes da Pessoa
-              <div className="details-actions">
-                <button
-                  onClick={() => openEditModal(selectedPerson)}
-                  className="details-action-btn details-action-btn-edit"
-                  title="Editar Pessoa"
-                >
-                  <FaEdit /> Editar
-                </button>
-              </div>
-            </h2>
-            
-            <div className="details-section">
-              <div className="details-grid">
-                <div className="details-item">
-                  <div className="details-item-label">Nome</div>
-                  <div className="details-item-value">{selectedPerson.name}</div>
-                </div>
-                <div className="details-item">
-                  <div className="details-item-label">CPF</div>
-                  <div className="details-item-value">{formatCPF(selectedPerson.cpf)}</div>
-                </div>
-                <div className="details-item">
-                  <div className="details-item-label">Data de Nascimento</div>
-                  <div className="details-item-value">{formatDateBR(selectedPerson.birthDate)}</div>
-                </div>
-                <div className="details-item">
-                  <div className="details-item-label">Nome da Mãe</div>
-                  <div className="details-item-value">{selectedPerson.nameMother}</div>
-                </div>
-                <div className="details-item">
-                  <div className="details-item-label">Nome do Pai</div>
-                  <div className="details-item-value">{selectedPerson.nameFather}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Endereços */}
-            <div className="details-section">
-              <div className="details-section-title">
-                <FaMapMarkerAlt /> Endereços
-              </div>
-              {selectedPerson.addresses && selectedPerson.addresses.length > 0 ? (
-                <div className="details-items-container">
-                  {selectedPerson.addresses.map((addr, i) => (
-                    <div key={addr.id || i} className="details-item">
-                      <div className="details-item-label">{addr.street}, {addr.number}</div>
-                      <div className="details-item-value">
-                        {addr.city}/{addr.state} ({addr.zipCode})<br />
-                        {addr.country}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="details-item">
-                  <div className="details-item-value">Nenhum endereço cadastrado</div>
-                </div>
-              )}
-            </div>
-
-            {/* Contatos */}
-            <div className="details-section">
-              <div className="details-section-title">
-                <FaPhone /> Contatos
-              </div>
-              {selectedPerson.contacts && selectedPerson.contacts.length > 0 ? (
-                <div className="details-items-container">
-                  {selectedPerson.contacts.map((contact, i) => (
-                    <div key={contact.id || i} className="details-item">
-                      <div className="details-item-label">{contact.email}</div>
-                      <div className="details-item-value">
-                        {formatPhone(contact.ddd, contact.telephoneNumber)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="details-item">
-                  <div className="details-item-value">Nenhum contato cadastrado</div>
-                </div>
-              )}
-            </div>
-
-            {/* Dependentes */}
-            <div className="details-section">
-              <div className="details-section-title">
-                <FaUserFriends /> Dependentes
-              </div>
-              {selectedPerson.dependents && selectedPerson.dependents.length > 0 ? (
-                <div className="details-items-container">
-                  {selectedPerson.dependents.map((dep, i) => (
-                    <div key={dep.id || i} className="details-item">
-                      <div className="details-item-label">{dep.name} ({dep.dependentType})</div>
-                      <div className="details-item-value">
-                        CPF: {formatCPF(dep.cpf)}<br />
-                        Data de Nascimento: {formatDateBR(dep.birthDate)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="details-item">
-                  <div className="details-item-value">Nenhum dependente cadastrado</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <PersonDetailsModal
+          person={selectedPerson}
+          onClose={() => setSelectedPerson(null)}
+          onEdit={openEditModal}
+        />
       )}
 
       {/* Modal de edição */}

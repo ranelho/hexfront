@@ -1,41 +1,5 @@
 import { FaTimes, FaEdit, FaMapMarkerAlt, FaPhone, FaUserFriends } from 'react-icons/fa';
-
-interface Address {
-  id: number;
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  number: string;
-}
-
-interface Contact {
-  id: number;
-  email: string;
-  ddd: string;
-  telephoneNumber: string;
-}
-
-interface Dependent {
-  id: number;
-  name: string;
-  cpf: string;
-  birthDate: string;
-  dependentType: string;
-}
-
-interface Person {
-  id: number;
-  name: string;
-  cpf: string;
-  birthDate: string;
-  nameMother: string;
-  nameFather: string;
-  addresses: Address[];
-  contacts: Contact[];
-  dependents: Dependent[];
-}
+import { Person, Address, Contact, Dependent } from '../types/person';
 
 interface PersonDetailsModalProps {
   person: Person | null;
@@ -138,11 +102,13 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
           {person.addresses && person.addresses.length > 0 ? (
             <div className="details-items-container">
               {person.addresses.map((addr, i) => (
-                <div key={addr.id || i} className="details-item">
-                  <div className="details-item-label">{addr.street}, {addr.number}</div>
+                <div key={i} className="details-item">
+                  <div className="details-item-label">
+                    {addr.street || 'Rua não informada'}, {addr.number || 'Número não informado'}
+                  </div>
                   <div className="details-item-value">
-                    {addr.city}/{addr.state} ({addr.zipCode})<br />
-                    {addr.country}
+                    {addr.city || 'Cidade não informada'}/{addr.state || 'Estado não informado'} ({addr.zipCode || 'CEP não informado'})<br />
+                    {addr.country || 'País não informado'}
                   </div>
                 </div>
               ))}
@@ -162,10 +128,13 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
           {person.contacts && person.contacts.length > 0 ? (
             <div className="details-items-container">
               {person.contacts.map((contact, i) => (
-                <div key={contact.id || i} className="details-item">
-                  <div className="details-item-label">{contact.email}</div>
+                <div key={i} className="details-item">
+                  <div className="details-item-label">{contact.email || 'Email não informado'}</div>
                   <div className="details-item-value">
-                    {formatPhone(contact.ddd, contact.telephoneNumber)}
+                    {contact.ddd && contact.telephoneNumber 
+                      ? formatPhone(contact.ddd, contact.telephoneNumber)
+                      : 'Telefone não informado'
+                    }
                   </div>
                 </div>
               ))}
@@ -185,12 +154,12 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
           {person.dependents && person.dependents.length > 0 ? (
             <div className="details-items-container">
               {person.dependents.map((dep, i) => (
-                <div key={dep.id || i} className="details-item">
-                  <div className="details-item-label">{dep.name}</div>
+                <div key={i} className="details-item">
+                  <div className="details-item-label">{dep.name || 'Nome não informado'}</div>
                   <div className="details-item-value">
-                    CPF: {formatCPF(dep.cpf)}<br />
-                    Data de Nascimento: {formatDateBR(dep.birthDate)}<br />
-                    Tipo: {dep.dependentType}
+                    CPF: {dep.cpf ? formatCPF(dep.cpf) : 'CPF não informado'}<br />
+                    Data de Nascimento: {formatDateBR(dep.birthDate || '')}<br />
+                    Tipo: {dep.dependentType || 'Tipo não informado'}
                   </div>
                 </div>
               ))}
