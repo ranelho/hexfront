@@ -298,7 +298,6 @@ export default function PersonListPage() {
                         className="action-btn action-btn-view"
                       >
                         <FaEye size={14} />
-                        <span style={{ marginLeft: '4px', fontSize: '12px' }}>Ver</span>
                       </button>
                       <button
                         title="Editar"
@@ -306,7 +305,6 @@ export default function PersonListPage() {
                         className="action-btn action-btn-edit"
                       >
                         <FaEdit size={14} />
-                        <span style={{ marginLeft: '4px', fontSize: '12px' }}>Editar</span>
                       </button>
                       <button
                         title="Excluir"
@@ -314,7 +312,6 @@ export default function PersonListPage() {
                         className="action-btn action-btn-delete"
                       >
                         <FaTrash size={14} />
-                        <span style={{ marginLeft: '4px', fontSize: '12px' }}>Excluir</span>
                       </button>
                     </div>
                   </td>

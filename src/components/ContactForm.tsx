@@ -23,8 +23,6 @@ export default function ContactForm({ contacts, onContactsChange }: ContactFormP
 
   return (
     <div>
-      <h3 className="section-title">Contatos</h3>
-      
       {contacts.map((contact, idx) => (
         <div key={idx} className="item-card">
           <div className="form-grid-3">
@@ -39,16 +37,33 @@ export default function ContactForm({ contacts, onContactsChange }: ContactFormP
             <input
               name={`ddd-${idx}`}
               value={contact.ddd || ''}
-              onChange={e => handleContactChange(idx, 'ddd', e.target.value)}
-              placeholder="DDD"
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                handleContactChange(idx, 'ddd', value);
+              }}
+              placeholder="11"
               maxLength={2}
               className="form-input"
             />
             <input
               name={`telephoneNumber-${idx}`}
               value={contact.telephoneNumber || ''}
-              onChange={e => handleContactChange(idx, 'telephoneNumber', e.target.value)}
-              placeholder="Telefone"
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, '');
+                let maskedValue = '';
+                if (value.length > 0) {
+                  if (value.length <= 4) {
+                    maskedValue = value;
+                  } else if (value.length <= 8) {
+                    maskedValue = `${value.slice(0, 4)}-${value.slice(4)}`;
+                  } else {
+                    maskedValue = `${value.slice(0, 5)}-${value.slice(5, 9)}`;
+                  }
+                }
+                handleContactChange(idx, 'telephoneNumber', maskedValue);
+              }}
+              placeholder="99999-9999"
+              maxLength={10}
               className="form-input"
             />
           </div>
@@ -75,4 +90,4 @@ export default function ContactForm({ contacts, onContactsChange }: ContactFormP
       </button>
     </div>
   );
-} 
+}

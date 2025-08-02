@@ -76,8 +76,6 @@ export default function AddressForm({ addresses, onAddressesChange }: AddressFor
 
   return (
     <div>
-      <h3 className="section-title">Endereços</h3>
-      
       {addresses.map((address, idx) => (
         <div key={idx} className="item-card">
           <div className="form-grid-4">
@@ -161,4 +159,4 @@ export default function AddressForm({ addresses, onAddressesChange }: AddressFor
       </button>
     </div>
   );
-} 
+}
