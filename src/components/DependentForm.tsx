@@ -45,8 +45,6 @@ export default function DependentForm({ dependents, onDependentsChange }: Depend
 
   return (
     <div>
-      <h3 className="section-title">Dependentes</h3>
-      
       {dependents.map((dependent, idx) => (
         <div key={idx} className="item-card">
           <div className="form-grid-4">
@@ -111,4 +109,4 @@ export default function DependentForm({ dependents, onDependentsChange }: Depend
       </button>
     </div>
   );
-} 
+}

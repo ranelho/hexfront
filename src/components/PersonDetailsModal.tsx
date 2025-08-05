@@ -1,41 +1,5 @@
 import { FaTimes, FaEdit, FaMapMarkerAlt, FaPhone, FaUserFriends } from 'react-icons/fa';
-
-interface Address {
-  id: number;
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  number: string;
-}
-
-interface Contact {
-  id: number;
-  email: string;
-  ddd: string;
-  telephoneNumber: string;
-}
-
-interface Dependent {
-  id: number;
-  name: string;
-  cpf: string;
-  birthDate: string;
-  dependentType: string;
-}
-
-interface Person {
-  id: number;
-  name: string;
-  cpf: string;
-  birthDate: string;
-  nameMother: string;
-  nameFather: string;
-  addresses: Address[];
-  contacts: Contact[];
-  dependents: Dependent[];
-}
+import { Person, Address, Contact, Dependent } from '../types/person';
 
 interface PersonDetailsModalProps {
   person: Person | null;
@@ -116,8 +80,32 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
               <div className="details-item-value">{formatCPF(person.cpf)}</div>
             </div>
             <div className="details-item">
+              <div className="details-item-label">RG</div>
+              <div className="details-item-value">{person.rg || '-'}</div>
+            </div>
+            <div className="details-item">
+              <div className="details-item-label">Órgão Emissor</div>
+              <div className="details-item-value">{person.rgIssuer || '-'}</div>
+            </div>
+            <div className="details-item">
               <div className="details-item-label">Data de Nascimento</div>
               <div className="details-item-value">{formatDateBR(person.birthDate)}</div>
+            </div>
+            <div className="details-item">
+              <div className="details-item-label">Estado Civil</div>
+              <div className="details-item-value">{person.maritalStatus || '-'}</div>
+            </div>
+            <div className="details-item">
+              <div className="details-item-label">Gênero</div>
+              <div className="details-item-value">{person.gender || '-'}</div>
+            </div>
+            <div className="details-item">
+              <div className="details-item-label">Nacionalidade</div>
+              <div className="details-item-value">{person.nationality || '-'}</div>
+            </div>
+            <div className="details-item">
+              <div className="details-item-label">Profissão</div>
+              <div className="details-item-value">{person.profession || '-'}</div>
             </div>
             <div className="details-item">
               <div className="details-item-label">Nome da Mãe</div>
@@ -126,6 +114,14 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
             <div className="details-item">
               <div className="details-item-label">Nome do Pai</div>
               <div className="details-item-value">{person.nameFather || '-'}</div>
+            </div>
+            <div className="details-item">
+              <div className="details-item-label">Contato de Emergência</div>
+              <div className="details-item-value">{person.emergencyContact || '-'}</div>
+            </div>
+            <div className="details-item">
+              <div className="details-item-label">Telefone de Emergência</div>
+              <div className="details-item-value">{person.emergencyPhone || '-'}</div>
             </div>
           </div>
         </div>
@@ -137,12 +133,17 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
           </div>
           {person.addresses && person.addresses.length > 0 ? (
             <div className="details-items-container">
-              {person.addresses.map((addr, i) => (
-                <div key={addr.id || i} className="details-item">
-                  <div className="details-item-label">{addr.street}, {addr.number}</div>
+              {person.addresses.map((address, index) => (
+                <div key={index} className="details-item">
+                  <div className="details-item-label">Endereço {index + 1}</div>
                   <div className="details-item-value">
-                    {addr.city}/{addr.state} ({addr.zipCode})<br />
-                    {addr.country}
+                    {address.street && `${address.street}`}
+                    {address.number && `, ${address.number}`}
+                    {address.neighborhood && ` - ${address.neighborhood}`}
+                    {address.city && `, ${address.city}`}
+                    {address.state && ` - ${address.state}`}
+                    {address.zipCode && `, CEP: ${address.zipCode}`}
+                    {address.country && `, ${address.country}`}
                   </div>
                 </div>
               ))}
@@ -161,11 +162,18 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
           </div>
           {person.contacts && person.contacts.length > 0 ? (
             <div className="details-items-container">
-              {person.contacts.map((contact, i) => (
-                <div key={contact.id || i} className="details-item">
-                  <div className="details-item-label">{contact.email}</div>
+              {person.contacts.map((contact, index) => (
+                <div key={index} className="details-item">
+                  <div className="details-item-label">Contato {index + 1}</div>
                   <div className="details-item-value">
-                    {formatPhone(contact.ddd, contact.telephoneNumber)}
+                    {contact.email && (
+                      <div className="contact-email">{contact.email}</div>
+                    )}
+                    {contact.ddd && contact.telephoneNumber && (
+                      <div className="contact-phone">
+                        {formatPhone(contact.ddd, contact.telephoneNumber)}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -184,13 +192,14 @@ export default function PersonDetailsModal({ person, onClose, onEdit }: PersonDe
           </div>
           {person.dependents && person.dependents.length > 0 ? (
             <div className="details-items-container">
-              {person.dependents.map((dep, i) => (
-                <div key={dep.id || i} className="details-item">
-                  <div className="details-item-label">{dep.name}</div>
+              {person.dependents.map((dependent, index) => (
+                <div key={index} className="details-item">
+                  <div className="details-item-label">Dependente {index + 1}</div>
                   <div className="details-item-value">
-                    CPF: {formatCPF(dep.cpf)}<br />
-                    Data de Nascimento: {formatDateBR(dep.birthDate)}<br />
-                    Tipo: {dep.dependentType}
+                    <div><strong>Nome:</strong> {dependent.name || '-'}</div>
+                    <div><strong>CPF:</strong> {dependent.cpf ? formatCPF(dependent.cpf) : '-'}</div>
+                    <div><strong>Data de Nascimento:</strong> {dependent.birthDate ? formatDateBR(dependent.birthDate) : '-'}</div>
+                    <div><strong>Tipo:</strong> {dependent.dependentType || '-'}</div>
                   </div>
                 </div>
               ))}
