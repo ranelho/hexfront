@@ -115,6 +115,11 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
     setPerson({ ...person, dependents });
   };
 
+  // Função para limpar telefone (remover hífen)
+  const cleanPhone = (phone: string): string => {
+    return phone.replace(/\D/g, '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -125,6 +130,19 @@ export default function PersonFormModal({ onClose, onSuccess }: Props) {
       
       if (personToSubmit.cpf) {
         personToSubmit.cpf = cleanCPF(personToSubmit.cpf);
+      }
+
+      // Limpar telefone de emergência
+      if (personToSubmit.emergencyPhone) {
+        personToSubmit.emergencyPhone = cleanPhone(personToSubmit.emergencyPhone);
+      }
+      
+      // Limpar telefones dos contatos
+      if (personToSubmit.contacts) {
+        personToSubmit.contacts = personToSubmit.contacts.map(contact => ({
+          ...contact,
+          telephoneNumber: contact.telephoneNumber ? cleanPhone(contact.telephoneNumber) : contact.telephoneNumber
+        }));
       }
 
       if (personToSubmit.cpf && personToSubmit.cpf.length === 11) {

@@ -66,6 +66,11 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
     }));
   };
 
+  // Função para limpar telefone (remover hífen)
+  const cleanPhone = (phone: string): string => {
+    return phone.replace(/\D/g, '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -73,7 +78,22 @@ export default function PersonEditModal({ person, onClose, onSuccess }: PersonEd
 
     try {
       if (person.id) {
-        await updatePerson(person.id, formData);
+        const dataToSubmit = { ...formData };
+        
+        // Limpar telefone de emergência
+        if (dataToSubmit.emergencyPhone) {
+          dataToSubmit.emergencyPhone = cleanPhone(dataToSubmit.emergencyPhone);
+        }
+        
+        // Limpar telefones dos contatos
+        if (dataToSubmit.contacts) {
+          dataToSubmit.contacts = dataToSubmit.contacts.map(contact => ({
+            ...contact,
+            telephoneNumber: contact.telephoneNumber ? cleanPhone(contact.telephoneNumber) : contact.telephoneNumber
+          }));
+        }
+        
+        await updatePerson(person.id, dataToSubmit);
       }
       onSuccess();
     } catch (err) {
