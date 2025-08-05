@@ -242,6 +242,12 @@
   font-weight: 600;
 }
 
+/* Animação de spinner para carregamento */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
   .form-grid,

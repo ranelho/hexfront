@@ -667,7 +667,7 @@ export default function PersonFormPage() {
                       maskedValue = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
                     }
                   }
-                  handleChange({ target: { name: 'emergencyPhone', value: maskedValue } });
+                  setPerson({ ...person, emergencyPhone: maskedValue });
                 }}
                 placeholder="(11) 99999-9999"
                 maxLength={15}
@@ -696,7 +696,21 @@ export default function PersonFormPage() {
         </div>
 
         {/* Seção de Endereços */}
-        <div className="form-section">
+        <div className="form-section" style={{ 
+          background: 'rgba(255, 255, 255, 0.8)',
+          borderRadius: '12px',
+          padding: '30px',
+          marginBottom: '40px',
+          border: '1px solid rgba(1976d2, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)'
+        }}>
+          <h3 className="section-title" style={{
+            fontSize: '1.5rem',
+            marginBottom: '25px',
+            color: '#1976d2',
+            borderBottom: '2px solid #1976d2',
+            paddingBottom: '10px'
+          }}>🏠 Endereços</h3>
           <AddressForm 
             addresses={person.addresses || []} 
             onAddressesChange={(addresses) => setPerson({ ...person, addresses })}
